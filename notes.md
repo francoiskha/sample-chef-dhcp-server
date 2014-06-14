@@ -43,7 +43,7 @@ vagrant snapshot back
 ```
 C'est utile quand on joue avec les config réseau.
 == DHCP Server
-Tout d'abord il faut savoir qu'une Vagrant box a obligatoirement une interface réseau dédiée à la communication avec la machine hôte. Dans notre cas c'est eth0.
+Tout d'abord il faut savoir qu'une Vagrant box a obligatoirement une interface réseau dédiée à la communication avec la machine hôte. Dans notre cas c'est `eth0`.
 En ssh sur la VM un
 ```bash
 sudo ifconfig -a
@@ -52,7 +52,7 @@ ne montre qu'un eth0 et la boucle locale.
 Pour pouvoir de la machine un serveur DHCP dans un réseau de machines virtuelles, il lui faudra une nouvelle interface réseau. Dans le Vagrant file on indique donc une configuration réseau.
 Premier essai, on lui attribut une IP fixe :
 ```ruby
-config.vm.network "private_network", ip: "192.168.4.0", :adapter => 2
+config.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
 ```
 On relance la VM avec un 
 ```bash
@@ -63,9 +63,9 @@ En ssh sur la VM un
 ```bash
 sudo ifconfig -a
 ```
-vous indiquera maintenant une interface eth1.
-Dans le répertoire de travail créez un répertoire cookbooks dans lequel vous téléchargerez les cookbooks dhcp, helpers-databags et ruby-helper.
-Toujours dans le répertoire de travail, créez aussi un répertoire databags/dhcp_networks avec un fichier 192-168-5-0_24.json :
+vous indiquera maintenant une interface `eth1`.
+Dans le répertoire de travail créez un répertoire cookbooks dans lequel vous téléchargerez les cookbooks `dhcp`, `helpers-databags` et `ruby-helper`.
+Toujours dans le répertoire de travail, créez aussi un répertoire `databags/dhcp_networks` avec un fichier 192-168-5-0_24.json :
 ```json{
   "id": "192-168-5-0_24",
   "routers": [ "192.168.5.0" ],
@@ -75,8 +75,8 @@ Toujours dans le répertoire de travail, créez aussi un répertoire databags/dh
   "range": "192.168.5.50 192.168.5.240"
 }
 ```
-Attention les databag en .json ne doivent contenir aucun character . dans le nom du fichier. L'id et le nom du fichier doivent correspondre.
-Toujours dans le répertoire de travail, créez un fichier attributes/default.json :
+Attention les databag en `.json` ne doivent contenir aucun caractère `.` dans le nom du fichier. Notez aussi que l'id et le nom du fichier doivent correspondre.
+Toujours dans le répertoire de travail, créez un fichier `attributes/default.json` :
 ```json
 {
   "run_list": [ "recipe[dhcp::server]" ],
@@ -86,12 +86,14 @@ Toujours dans le répertoire de travail, créez un fichier attributes/default.js
   }
 }
 ```
+On y définit la run-list chef, ici uniquement la recette `dhcp::server`, et les attributs nécessaires, notamment l'interface réseau sur laquelle on configure le serveur dhcp (sinon toutes les interfaces réseaux sont configurées et l'on veut conserver `eth0` pour le ssh uniquement). On désigne aussi le databag de réseau à configurer.
 Toujours dans le répertoire de travail, créez un fichier solo.rb :
 ```ruby
 cookbook_path 	[ "/vagrant/cookbooks" ]
 data_bag_path	"/vagrant/databags"
 log_level	:debug
 ```
+C'est la configuration de chef, le niveau de log debug n'est pas nécessaire mais il vous permet de voir ce qui se passe en détail si vous le désirez.
 Dans la vm, lancez 
 ```bash
 sudo chef-solo -c /vagrant/solo.rb -j "/vagrant/attributes/default.json"
