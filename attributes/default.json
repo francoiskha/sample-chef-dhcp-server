@@ -1,6 +1,6 @@
 {
   "run_list": [ "recipe[dhcp::server]" ],
   "dhcp" : {
-  	"interfaces" : ["eth1s"]
+  	"interfaces" : ["eth1"]
   }
 }

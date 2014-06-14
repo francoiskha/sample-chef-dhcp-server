@@ -12,7 +12,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "chef/debian-7.4"
   config.omnibus.chef_version = :latest
-  config.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
+  config.vm.network "private_network", ip: "192.168.4.0", :adapter => 2
+
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

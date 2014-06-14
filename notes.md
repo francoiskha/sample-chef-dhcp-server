@@ -52,7 +52,7 @@ ne montre qu'un eth0 et la boucle locale.
 Pour pouvoir de la machine un serveur DHCP dans un réseau de machines virtuelles, il lui faudra une nouvelle interface réseau. Dans le Vagrant file on indique donc une configuration réseau.
 Premier essai, on lui attribut une IP fixe :
 ```ruby
-config.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
+config.vm.network "private_network", ip: "192.168.4.0", :adapter => 2
 ```
 On relance la VM avec un 
 ```bash
@@ -75,6 +75,15 @@ Toujours dans le répertoire de travail, créez aussi un répertoire databags/dh
   "range": "192.168.5.50 192.168.5.240"
 }
 ```
+Toujours dans le répertoire de travail, créez un fichier attributes/default.json :
+```json
+{
+  "run_list": [ "recipe[dhcp::server]" ],
+  "dhcp" : {
+  	"interfaces" : ["eth1"]
+  }
+}
+```
 Toujours dans le répertoire de travail, créez un fichier solo.rb :
 ```ruby
 cookbook_path 	[ "/vagrant/cookbooks" ]
@@ -83,5 +92,5 @@ log_level	:debug
 ```
 Dans la vm, lancez 
 ```bash
-sudo chef-solo -c /vagrant/solo.rb -o "recipe[dhcp::server]"
+sudo chef-solo -c /vagrant/solo.rb -j "/vagrant/attributes/default.json"
 ```
