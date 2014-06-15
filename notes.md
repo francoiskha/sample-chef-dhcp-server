@@ -72,7 +72,7 @@ Toujours dans le répertoire de travail, créez aussi un répertoire `databags/d
   "address": "192.168.5.0",
   "netmask": "255.255.255.0",
   "broadcast": "192.168.5.255",
-  "range": "192.168.5.50 192.168.5.240"
+  "range": "192.168.5.50 192.168.5.254"
 }
 ```
 Attention les databag en `.json` ne doivent contenir aucun caractère `.` dans le nom du fichier. Notez aussi que l'id et le nom du fichier doivent correspondre.
@@ -97,4 +97,41 @@ C'est la configuration de chef, le niveau de log debug n'est pas nécessaire mai
 Dans la vm, lancez 
 ```bash
 sudo chef-solo -c /vagrant/solo.rb -j "/vagrant/attributes/default.json"
+```
+== Test du DHCP server avec un client
+Là on va ajouter une seconde machine virtuelle dans le fichier Vagrant. Pour qu'elles puissent se parler, elles doivent être dans le même réseau virtuel. Identifiez dans virtualbox sur quel réseau est votre première machine. Moi c'est `vboxnet1`.
+C'est noté ? ok parce que maintenant on détruit la machine créée avec :
+```bash
+vagrant destroy
+```
+Maintenant supprimez le serveur dhcp pour le réseau virtuel dans virtual box (via la GUI ou bien via `VBoxManage`)
+Ensuite on retouche le vagrant file : 
+```ruby
+config.vm.provider :virtualbox do |vb|
+  # choisir un réseau virtual box sans dhcpserver
+  vb.customize ['modifyvm', :id, '--hostonlyadapter2', 'vboxnet1']
+end
+# Every Vagrant virtual environment requires a box to build off of.
+config.vm.box = "chef/debian-7.4"
+config.vm.define "master", primary: true do |master|
+  master.omnibus.chef_version = :latest
+  master.vm.network "private_network", ip: "192.168.5.0", :netmask => "255.255.255.0", :adapter => 2
+end
+config.vm.define "client" do |client|
+  client.vm.network "private_network", type: "dhcp", :netmask => "255.255.255.0", :adapter => 2, auto_config: false
+end
+```
+Voilà ce que l'on fait en détail : d'abord on déclare que pour toute vm virtualbox, le réseau virtuel à utiliser est `vboxnet1`. Ensuite, toujours pour toutes les vm, la box à utiliser est toujours la même. Enfin, on définit 2 vm distinctes `master` qui a les attributs de notre serveur dhcp et `client` qui n'aura pas de provisionning de chef et pas d'IP fixe. Au passage on désative l'autoconfig de réseau et on précise le masque réseau (j'ai eu des problème de masque attribué automatiquement)
+Lancez la machine master avec :
+```bash
+vagrant up master
+```
+Ensuite exécutez chef comme précédemment.
+Lancez la machine cliente :
+```bash
+vagrant up client
+```
+Maintenant en ssh sur la machine master vous devriez la voir accorder un bail dhcp dans le syslog :
+```bash
+tail /var/log/syslog
 ```

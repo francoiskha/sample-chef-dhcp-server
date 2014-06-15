@@ -9,14 +9,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
   
+  config.vm.provider :virtualbox do |vb|
+    # choisir un réseau virtual box sans dhcpserver
+    vb.customize ['modifyvm', :id, '--hostonlyadapter2', 'vboxnet1']
+  end
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "chef/debian-7.4"
   config.vm.define "master", primary: true do |master|
     master.omnibus.chef_version = :latest
-    master.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
+    master.vm.network "private_network", ip: "192.168.5.0", :netmask => "255.255.255.0", :adapter => 2
   end
   config.vm.define "client" do |client|
-    client.vm.network "private_network", ip: "192.168.5.1", :adapter => 2
+    #client.vm.network "private_network", ip: "172.16.5.1", :netmask => "255.255.0.0", :adapter => 2
+    client.vm.network "private_network", type: "dhcp", :netmask => "255.255.255.0", :adapter => 2, auto_config: false
   end
 
   # Disable automatic box update checking. If you disable this, then
