@@ -8,12 +8,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
-
-  # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "chef/debian-7.4"
-  config.omnibus.chef_version = :latest
-  config.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
-
+  config.vm.define "master", primary: true do |master|
+    # Every Vagrant virtual environment requires a box to build off of.
+    master.vm.box = "chef/debian-7.4"
+    master.omnibus.chef_version = :latest
+    master.vm.network "private_network", ip: "192.168.5.0", :adapter => 2
+  end
+  config.vm.define "client" do |client|
+    # Every Vagrant virtual environment requires a box to build off of.
+    client.vm.box = "chef/debian-7.4"
+    client.vm.network "private_network", ip: "192.168.5.1", :adapter => 2
+  end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
