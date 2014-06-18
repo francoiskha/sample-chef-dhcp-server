@@ -1,1 +1,4 @@
-cookbooks/
+.vagrant
+cookbooks/dhcp
+cookbooks/helpers-databags
+cookbooks/ruby-helper
